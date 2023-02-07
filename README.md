@@ -8,6 +8,20 @@ You won't find a smaller bundle anywhere else!
 Implemented with SWC in Rust (:rocket::rocket::rocket:),
 to stop it from being *too* horridly inefficent.
 
+## Usage hints
+
+ParaMin works best when fed an unminified bundle, so if your build tool has that stage in its pipeline, awesome.
+
+If it doesn't, post-process an unminified build :)
+
+Only ES Modules are supported *as of now*, otherwise ParaMin cannot understand which things must have the same external behaviour.
+CommonJS etc. *may work*, as `module.exports` would be considered a global and not broken, but none of this is guaranteed.
+
+The following optional settings may be useful:
+ - `unsafeglobals`: will happily break external code that may depend on globals created in your code.
+ - `noshake`: prevents ParaMin from tree shaking your code. Useful for debug purposes as it prevents pure code from compiling down to an empty file.
+ - `dev`: disables many minifications to build way faster, so that it can be used in dev environments eg Vite without being a performance issue.
+
 ## Why?
 
 Because a lot of minifiers now don't do the best job a lot of the time.
