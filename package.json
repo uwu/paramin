@@ -1,0 +1,13 @@
+{
+    "name": "paramin",
+    "version": "0.1.0",
+    "description": "The absoutely insane JS minifier.",
+    "author": "Yellowsink",
+    "license": "BSD-3-Clause",
+    "keywords": ["swc-plugin"],
+    "main": "target/wasm32-wasi/release/paramin.wasm",
+    "scripts": {
+        "prepublishOnly": "cargo build-wasi --release"
+    },
+    "files": []
+}
