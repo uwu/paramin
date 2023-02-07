@@ -19,6 +19,7 @@ I can't hope to beat hand-optimised output, but I hope to get close!
 
 Based on a few main concepts:
  - Arrogant minifications
+   * Always applied, relatively fast to apply
    * Mangling (foo -> e)
    * Compressing (`function (x, y) {  }` -> `function(x,y){}`)
    * Heuristic minifications (all the neat stuff minifiers do already)
@@ -26,8 +27,8 @@ Based on a few main concepts:
  - Tentative minifications
    * Test all the things!
    * Throw possible minifications at the wall and see what does or doesn't stick
-   * *Can* be used to avoid arrogant minifications if they actually might have an adverse effect
-   * Let's super
+   * *Can* be used to avoid arrogant minifications if they actually might have an adverse effect,
+     but unlikely
 
  - Smarter situational minifications
    * Use a `function` that turns out bigger than an arrow func but don't make use of `this`? Let's minify!
