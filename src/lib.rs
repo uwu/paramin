@@ -5,6 +5,8 @@ use swc_core::ecma::{
 };
 use swc_core::plugin::{plugin_transform, proxies::TransformPluginProgramMetadata};
 
+mod measurement;
+
 pub struct TransformVisitor;
 
 impl VisitMut for TransformVisitor {
