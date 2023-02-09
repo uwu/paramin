@@ -1,18 +1,11 @@
-use std::cell::Cell;
 use std::io::{Write, Result};
-use std::slice::SliceIndex;
-use std::sync::Weak;
-use swc_core::common::{Span, SyntaxContext, BytePos};
 use swc_core::common::sync::{Lrc, RwLock};
 
 use swc_core::ecma::codegen::Config;
-use swc_core::ecma::codegen::text_writer::{JsWriter};
+use swc_core::ecma::codegen::text_writer::JsWriter;
 use swc_core::{
-	common::{SourceMap},
-	ecma::{
-		codegen::{Emitter,Node},
-		ast
-	}
+	common::SourceMap,
+	ecma::codegen::{Emitter,Node}
 };
 
 struct WriteCounter {
@@ -27,13 +20,16 @@ impl Write for WriteCounter {
 	fn write(&mut self, buf: &[u8]) -> Result<usize> {
 		let len = buf.len();
 
+		// useful for debug
+		//print!("{}", std::str::from_utf8(buf).unwrap());
+
 		*self.written.write() += len;
 
 		Ok(len)
 	}
 }
 
-fn get_length(node: impl Node) -> usize {
+pub fn get_length(node: &impl Node) -> usize {
 	let srcmap = Lrc::new(SourceMap::default());
 	let written = Lrc::new(RwLock::new(0));
 	let counter = WriteCounter { written: written.clone() };
@@ -61,6 +57,9 @@ pub fn test_operation() -> bool {
 #[test]
 fn test_get_length() {
 
+	use swc_core::common::{Span, SyntaxContext, BytePos};
+	use swc_core::ecma::ast;
+
 	let node = ast::Str {
 		raw: Some("deez nuts".into()),
 		value: "deez nuts".into(),
@@ -71,7 +70,7 @@ fn test_get_length() {
 		}
 	};
 
-	let res = get_length(node);
+	let res = get_length(&node);
 
 	assert_eq!(res, 11);
 }
