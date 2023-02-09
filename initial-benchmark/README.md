@@ -53,7 +53,7 @@ I will show results for multiple invocation amounts.
 
 The JS benchmark code lives in this directory, the Rust code under benchmark is
 [this code](https://github.com/uwu/paramin/blob/954ebc9/src/measurement.rs#L32-L51),
-using [this benchmark](https://github.com/uwu/paramin/blob/master/benches/measurement_benches.rs).
+using [this benchmark](https://github.com/uwu/paramin/blob/e81a957/benches/measurement_benches.rs).
 
 JS data (tab-separated CSV, yes I am the devil):
 ```csv
