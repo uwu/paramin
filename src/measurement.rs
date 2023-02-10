@@ -1,15 +1,15 @@
-use std::io::{Write, Result};
+use std::io::{Result, Write};
 use swc_core::common::sync::{Lrc, RwLock};
 
-use swc_core::ecma::codegen::Config;
 use swc_core::ecma::codegen::text_writer::JsWriter;
+use swc_core::ecma::codegen::Config;
 use swc_core::{
 	common::SourceMap,
-	ecma::codegen::{Emitter,Node}
+	ecma::codegen::{Emitter, Node},
 };
 
 struct WriteCounter {
-	pub written: Lrc<RwLock<usize>>
+	pub written: Lrc<RwLock<usize>>,
 }
 
 impl Write for WriteCounter {
@@ -32,7 +32,9 @@ impl Write for WriteCounter {
 pub fn get_length(node: &impl Node) -> usize {
 	let srcmap = Lrc::new(SourceMap::default());
 	let written = Lrc::new(RwLock::new(0));
-	let counter = WriteCounter { written: written.clone() };
+	let counter = WriteCounter {
+		written: written.clone(),
+	};
 
 	let mut emitter = Emitter {
 		cm: srcmap.clone(),
@@ -41,7 +43,7 @@ pub fn get_length(node: &impl Node) -> usize {
 		cfg: Config {
 			minify: true,
 			..Config::default()
-		}
+		},
 	};
 
 	node.emit_with(&mut emitter).unwrap();
@@ -50,27 +52,87 @@ pub fn get_length(node: &impl Node) -> usize {
 	written
 }
 
-pub fn test_operation() -> bool {
-	panic!("not implemented lol die");
+// TODO: this will probably need to become more sophisticated!
+pub fn attempt_operation<T: Node, F: Fn(&T) -> T>(node: T, transformer: F) -> T {
+	let transformed = transformer(&node);
+
+	if get_length(&node) > get_length(&transformed) {
+		transformed
+	} else {
+		node
+	}
 }
 
 #[test]
 fn test_get_length() {
-
-	use swc_core::common::{Span, SyntaxContext, BytePos};
 	use swc_core::ecma::ast;
 
 	let node = ast::Str {
 		raw: Some("deez nuts".into()),
 		value: "deez nuts".into(),
-		span: Span {
-			lo: BytePos(0),
-			hi: BytePos(11),
-			ctxt: SyntaxContext::empty()
-		}
+		span: Default::default(),
 	};
 
 	let res = get_length(&node);
 
 	assert_eq!(res, 11);
+}
+
+#[test]
+fn test_attempt_operation_improvement() {
+	use swc_core::ecma::ast;
+
+	let initial_value = "remove this ->!";
+
+	let node = ast::Str {
+		raw: Some(initial_value.into()),
+		value: initial_value.into(),
+		span: Default::default(),
+	};
+
+	let res = attempt_operation(node, |n| {
+		if n.value.ends_with('!') {
+			let mut chars = n.value.chars();
+			chars.next_back();
+			let trimmed = chars.as_str();
+			ast::Str {
+				span: n.span,
+				raw: Some(trimmed.into()),
+				value: trimmed.into(),
+			}
+		} else {
+			n.clone()
+		}
+	});
+
+	assert_ne!(*initial_value, res.value);
+}
+
+#[test]
+fn test_attempt_operation_regression() {
+	use swc_core::ecma::ast;
+
+	let initial_value = "duplicate this ->!";
+
+	let node = ast::Str {
+		raw: Some(initial_value.into()),
+		value: initial_value.into(),
+		span: Default::default(),
+	};
+
+	let res = attempt_operation(node, |n| {
+		if n.value.ends_with('!') {
+			let extended = String::from(&*n.value) + "!";
+
+			ast::Str {
+				span: n.span,
+				raw: Some(extended.clone().into()),
+				value: extended.into(),
+			}
+		} else {
+			n.clone()
+		}
+	});
+
+	assert_eq!(*initial_value, res.value);
 }
