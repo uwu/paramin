@@ -6,6 +6,7 @@ use swc_core::ecma::{
 use swc_core::plugin::{plugin_transform, proxies::TransformPluginProgramMetadata};
 
 pub mod measurement;
+mod codegen;
 
 pub struct TransformVisitor;
 

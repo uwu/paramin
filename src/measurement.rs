@@ -1,13 +1,10 @@
 use std::io::{Result, Write};
 use swc_core::common::sync::{Lrc, RwLock};
+use swc_core::ecma::codegen::Node;
 
-use swc_core::ecma::codegen::text_writer::JsWriter;
-use swc_core::ecma::codegen::Config;
-use swc_core::{
-	common::SourceMap,
-	ecma::codegen::{Emitter, Node},
-};
+use crate::codegen::emit_to_writer;
 
+#[derive(Default)]
 struct WriteCounter {
 	pub written: Lrc<RwLock<usize>>,
 }
@@ -20,9 +17,6 @@ impl Write for WriteCounter {
 	fn write(&mut self, buf: &[u8]) -> Result<usize> {
 		let len = buf.len();
 
-		// useful for debug
-		//print!("{}", std::str::from_utf8(buf).unwrap());
-
 		*self.written.write() += len;
 
 		Ok(len)
@@ -30,26 +24,13 @@ impl Write for WriteCounter {
 }
 
 pub fn get_length(node: &impl Node) -> usize {
-	let srcmap = Lrc::new(SourceMap::default());
-	let written = Lrc::new(RwLock::new(0));
-	let counter = WriteCounter {
-		written: written.clone(),
-	};
+	let counter = WriteCounter::default();
+	let write_count = counter.written.clone();
 
-	let mut emitter = Emitter {
-		cm: srcmap.clone(),
-		comments: None,
-		wr: JsWriter::new(srcmap, "\n", counter, None),
-		cfg: Config {
-			minify: true,
-			..Config::default()
-		},
-	};
+	emit_to_writer(node, counter);
 
-	node.emit_with(&mut emitter).unwrap();
-
-	let written = *written.read();
-	written
+	let write_count = *write_count.read();
+	write_count
 }
 
 // TODO: this will probably need to become more sophisticated!
