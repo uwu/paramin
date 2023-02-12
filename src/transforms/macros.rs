@@ -1,14 +1,11 @@
 #[macro_export]
 macro_rules! export_transformer {
 	($a:expr) => {
-		use swc_core::ecma::{
-			ast::Program as ___macro_Program,
-			visit::{as_folder as ___macro__as_folder, FoldWith as ___macro__FoldWith},
-		};
+		use swc_core::ecma::ast::Program as ___macro_Program;
 
 		#[inline(always)]
-		pub fn transformer(program: ___macro_Program) -> ___macro_Program {
-			program.fold_with(&mut ___macro__as_folder($a))
+		pub fn transformer(program: &mut ___macro_Program) {
+			program.visit_mut_with(&mut $a)
 		}
 	};
 }
