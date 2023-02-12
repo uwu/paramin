@@ -7,7 +7,7 @@ use swc_core::ecma::{
 	visit::{VisitMut, VisitMutWith},
 };
 
-use crate::{export_transformer, ast_utils::{extract_fn_shadows, function_to_arrow, arrow_to_function, extract_ast_idents}};
+use crate::{export_transformer, ast_utils::{extract_fn_shadows, function_to_arrow, arrow_to_function, get_ast_idents}};
 
 const ALPHABET: &[u8] = b"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ$_";
 const ALPHABET_LENGTH: usize = ALPHABET.len();
@@ -120,10 +120,7 @@ impl VisitMut for MangleVisitor {
 
 		extract_fn_shadows(n, &mut v.in_use_names);
 
-		let mut used_idents = vec![];
-		extract_ast_idents(n, &mut used_idents);
-
-		for used in used_idents {
+		for used in get_ast_idents(n) {
 			if let Some(replaced) = self.renames.get(&used) {
 				v.in_use_names.push(replaced.clone())
 			}

@@ -47,10 +47,11 @@ impl Visit for IdentUseVisitor {
 	}
 }
 
-pub fn extract_ast_idents(
-	node: &impl VisitWith<IdentUseVisitor>,
-	target: &mut Vec<JsWord>
-) {
+// naming convention moment: get = return, extract = dump into given target
+
+pub fn get_ast_idents(
+	node: &impl VisitWith<IdentUseVisitor>
+) -> Vec<JsWord> {
 	let mut visitor = IdentUseVisitor {
 		found: vec![],
 		ignore_list: vec![],
@@ -58,7 +59,7 @@ pub fn extract_ast_idents(
 
 	node.visit_with(&mut visitor);
 
-	target.append(&mut visitor.found);
+	visitor.found
 }
 
 // TODO: extract_pat_idents
@@ -171,7 +172,7 @@ fn test_extract_fn_shadows() {
 }
 
 #[test]
-fn test_extract_ast_idents() {
+fn test_get_ast_idents() {
 	let param = |name: &str| {
 		ast::Pat::Ident(ast::BindingIdent {
 			type_ann: None,
@@ -220,8 +221,7 @@ fn test_extract_ast_idents() {
 		],
 	};
 
-	let mut results = vec![];
-	extract_ast_idents(&ast, &mut results);
+	let results = get_ast_idents(&ast);
 	let expected: Vec<JsWord> = vec!["foo".into(), "bar".into()];
 
 	assert_eq!(results, expected);
