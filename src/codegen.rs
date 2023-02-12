@@ -32,6 +32,7 @@ pub fn emit_to_str(node: &impl Node) -> String {
 }
 
 // TODO: consider if tree walking is enough faster than stringifying to redesign this func
+#[allow(dead_code)] // TODO: remove when not needed anymore
 pub fn test_asts_equal(node1: &impl Node, node2: &impl Node) -> bool {
 	emit_to_str(node1) == emit_to_str(node2)
 }

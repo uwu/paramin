@@ -7,5 +7,5 @@ use swc_core::plugin::{plugin_transform, proxies::TransformPluginProgramMetadata
 
 #[plugin_transform]
 pub fn transformer(program: Program, _metadata: TransformPluginProgramMetadata) -> Program {
-	program
+	transforms::confident::transform_all_confident(program)
 }
