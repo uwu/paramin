@@ -8,6 +8,25 @@ You won't find a smaller bundle anywhere else!
 Implemented with SWC in Rust (:rocket::rocket::rocket:),
 to stop it from being *too* horridly inefficent.
 
+> **Warning** |
+> *On the open-sourcedness of ParaMin 2023-02-12*
+> 
+> This repository was open sourced very early on because of a request by a friend of mine
+> to read the source code for the mangler.
+> 
+> However, almost instantly this proved true to EXACTLY why I keep my
+> WIP projects closed-source: *"benchmark for size where"*.
+> 
+> No, its not ready, don't expect it to work.
+> 
+> If you're here to keep an eye on this until its ready *that's awesome*,
+> and I'm super glad you're interested in my work,
+> but if you are about to come and ask me for size or runtime speed
+> metrics of any kind, or for how to use this currently, please don't.
+> **There are no metrics, and you cannot currently use this in your pipeline.**
+> 
+> Thanks, Yellowsink.
+
 ## Usage hints
 
 ParaMin works best when fed an unminified bundle, so if your build tool has that stage in its pipeline, awesome.
@@ -32,7 +51,7 @@ when looking yourself.
 I can't hope to beat hand-optimised output, but I hope to get close!
 
 Based on a few main concepts:
- - Arrogant minifications
+ - Confident minifications
    * Always applied, relatively fast to apply
    * Mangling (foo -> e)
    * Compressing (`function (x, y) {  }` -> `function(x,y){}`)
@@ -41,8 +60,8 @@ Based on a few main concepts:
  - Tentative minifications
    * Test all the things!
    * Throw possible minifications at the wall and see what does or doesn't stick
-   * *Can* be used to avoid arrogant minifications if they actually might have an adverse effect,
-     but unlikely
+   * *Can* be used to avoid classically confident minifications if they actually might have an adverse effect,
+     but unlikely this should ever be needed
 
  - Smarter situational minifications
    * Use a `function` that turns out bigger than an arrow func but don't make use of `this`? Let's minify!
