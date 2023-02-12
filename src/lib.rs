@@ -1,6 +1,7 @@
 mod codegen;
 pub mod measurement;
 mod transforms;
+mod ast_utils;
 
 use swc_core::ecma::ast::Program;
 use swc_core::plugin::{plugin_transform, proxies::TransformPluginProgramMetadata};

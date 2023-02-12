@@ -7,16 +7,18 @@ use swc_core::ecma::{
 	visit::{VisitMut, VisitMutWith},
 };
 
-use crate::export_transformer;
+use crate::{export_transformer, ast_utils::{extract_fn_shadows, function_to_arrow, arrow_to_function, extract_ast_idents}};
 
-const ALPHABET: &[u8] = b"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVXYZ$_";
+const ALPHABET: &[u8] = b"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ$_";
 const ALPHABET_LENGTH: usize = ALPHABET.len();
 
 #[derive(Default)]
 struct MangleVisitor {
-	// names in use (some may be shadowable but not all)
-	// if a name isnt in here, halt and catch fire
-	pub defined_names: Vec<JsWord>,
+	// names that are now in use
+	pub in_use_names: Vec<JsWord>,
+	// source names in scope (that have been renamed)
+	// only rename names with one of these!
+	pub source_names: Vec<JsWord>,
 	// backwards stack (5, 3 -> df)
 	pub name_stack: Vec<usize>,
 	// holds the renames so far in this scope
@@ -24,13 +26,11 @@ struct MangleVisitor {
 }
 
 impl MangleVisitor {
-	fn halt_and_catch_fire(&self) {
-		panic!("halt & catch fire in MangleVisitor");
-	}
-
 	fn sub_visitor(&self) -> MangleVisitor {
 		MangleVisitor {
-			defined_names: self.defined_names.clone(),
+			//in_use_names: self.in_use_names.clone(),
+			source_names: self.source_names.clone(),
+			renames: self.renames.clone(),
 			..Default::default()
 		}
 	}
@@ -38,30 +38,33 @@ impl MangleVisitor {
 	fn next_name(&mut self) -> JsWord {
 		if self.name_stack.is_empty() {
 			self.name_stack.push(0);
-			std::str::from_utf8(&[ALPHABET[0]][..]).unwrap().into()
-		} else {
-			loop {
-				let mut okay = false;
-				for i in 0..self.name_stack.len() {
-					self.name_stack[i] += 1;
 
-					if self.name_stack[i] < ALPHABET_LENGTH {
-						okay = true;
-						break;
-					}
+			let name = self.name_stack_to_str();
+			if !self.in_use_names.contains(&name) {
+				return name;
+			}
+		}
 
-					self.name_stack[i] -= ALPHABET_LENGTH;
+		loop {
+			let mut okay = false;
+			for i in 0..self.name_stack.len() {
+				self.name_stack[i] += 1;
+
+				if self.name_stack[i] < ALPHABET_LENGTH {
+					okay = true;
+					break;
 				}
 
-				if !okay {
-					self.name_stack.push(0);
-				}
+				self.name_stack[i] -= ALPHABET_LENGTH;
+			}
 
-				// TODO: some of these can be safely shadowed! (perhaps look at some code from terser or something)
-				let name = self.name_stack_to_str();
-				if !self.defined_names.contains(&name) {
-					return name;
-				}
+			if !okay {
+				self.name_stack.push(0);
+			}
+
+			let name = self.name_stack_to_str();
+			if !self.in_use_names.contains(&name) {
+				return name;
 			}
 		}
 	}
@@ -81,13 +84,13 @@ impl VisitMut for MangleVisitor {
 	fn visit_mut_var_decl(&mut self, n: &mut ast::VarDecl) {
 		for decl in n.decls.clone() {
 			match decl.name {
-				ast::Pat::Ident(id) => self.defined_names.push(id.id.sym),
+				ast::Pat::Ident(id) => self.source_names.push(id.id.sym),
 				ast::Pat::Array(_) => todo!(),
 				ast::Pat::Object(_) => todo!(),
-				ast::Pat::Rest(_) => self.halt_and_catch_fire(),
-				ast::Pat::Assign(_) => self.halt_and_catch_fire(),
-				ast::Pat::Invalid(_) => self.halt_and_catch_fire(),
-				ast::Pat::Expr(_) => self.halt_and_catch_fire(),
+				ast::Pat::Rest(_) => panic!("Rest is not valid in a variable decl"),
+				ast::Pat::Assign(_) => panic!("Assign is not valid in a variable decl"),
+				ast::Pat::Invalid(_) => panic!("Invalid is not valid in a variable decl"),
+				ast::Pat::Expr(_) => panic!("Expr is not valid in a variable decl"),
 			}
 		}
 
@@ -95,7 +98,7 @@ impl VisitMut for MangleVisitor {
 	}
 
 	fn visit_mut_ident(&mut self, n: &mut ast::Ident) {
-		if !self.defined_names.contains(&n.sym) {
+		if !self.source_names.contains(&n.sym) {
 			return;
 		}
 
@@ -105,6 +108,7 @@ impl VisitMut for MangleVisitor {
 			let new = self.next_name();
 
 			self.renames.insert(n.sym.clone(), new.clone());
+			self.in_use_names.push(new.clone());
 			n.sym = new;
 		}
 
@@ -114,19 +118,27 @@ impl VisitMut for MangleVisitor {
 	fn visit_mut_function(&mut self, n: &mut ast::Function) {
 		let mut v = self.sub_visitor();
 
-		for p in n.params.clone() {
-			match p.pat {
-				ast::Pat::Ident(id) => v.defined_names.push(id.sym.clone()),
-				ast::Pat::Array(_) => todo!(),
-				ast::Pat::Object(_) => todo!(),
-				ast::Pat::Assign(_) => todo!(),
-				ast::Pat::Rest(_) => todo!(),
-				ast::Pat::Invalid(_) => self.halt_and_catch_fire(),
-				ast::Pat::Expr(_) => self.halt_and_catch_fire(),
+		extract_fn_shadows(n, &mut v.in_use_names);
+
+		let mut used_idents = vec![];
+		extract_ast_idents(n, &mut used_idents);
+
+		for used in used_idents {
+			if let Some(replaced) = self.renames.get(&used) {
+				v.in_use_names.push(replaced.clone())
 			}
 		}
 
 		n.visit_mut_children_with(&mut v);
+	}
+
+	fn visit_mut_arrow_expr(&mut self, n: &mut ast::ArrowExpr) {
+		// i love swc
+		let mut func = arrow_to_function(n);
+		self.visit_mut_function(&mut func);
+		let new_arrow = function_to_arrow(&func);
+		n.body = new_arrow.body;
+		n.params = new_arrow.params;
 	}
 }
 
@@ -141,4 +153,25 @@ test!(
 	mangle_test,
 	r#"let foo, bar = 5; console.log(foo ?? bar + 7)"#,
 	r#"let a, b = 5; console.log(a ?? b + 7)"#
+);
+
+test!(
+	Default::default(),
+	|_| {
+		use swc_core::ecma::visit::as_folder;
+		as_folder(MangleVisitor::default())
+	},
+	mangle_awareness_test,
+	r#"let b,c,a, d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,$,_;
+
+	(() => {
+		let foo;
+		console.log(b, foo);
+	})();"#,
+	r#"let a,b,c, d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,$,_;
+
+	(() => {
+		let b;
+		console.log(a, b);
+	})();"#
 );

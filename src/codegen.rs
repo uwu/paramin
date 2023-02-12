@@ -31,12 +31,6 @@ pub fn emit_to_str(node: &impl Node) -> String {
 	String::from_utf8(vec).unwrap()
 }
 
-// TODO: consider if tree walking is enough faster than stringifying to redesign this func
-#[allow(dead_code)] // TODO: remove when not needed anymore
-pub fn test_asts_equal(node1: &impl Node, node2: &impl Node) -> bool {
-	emit_to_str(node1) == emit_to_str(node2)
-}
-
 #[test]
 fn test_emit_to_str() {
 	use swc_core::ecma::ast;
