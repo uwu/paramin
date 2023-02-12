@@ -13,7 +13,7 @@ const ALPHABET: &[u8] = b"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVXYZ$_"
 const ALPHABET_LENGTH: usize = ALPHABET.len();
 
 #[derive(Default)]
-pub struct MangleVisitor {
+struct MangleVisitor {
 	// names in use (some may be shadowable but not all)
 	// if a name isnt in here, halt and catch fire
 	pub defined_names: Vec<JsWord>,
@@ -36,7 +36,7 @@ impl MangleVisitor {
 	}
 
 	fn next_name(&mut self) -> JsWord {
-		if self.name_stack.len() == 0 {
+		if self.name_stack.is_empty() {
 			self.name_stack.push(0);
 			std::str::from_utf8(&[ALPHABET[0]][..]).unwrap().into()
 		} else {
