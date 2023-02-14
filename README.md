@@ -1,12 +1,12 @@
 # ParaMin
 
-The absoutely insane JS minifier.
+The absolutely insane JS minifier.
 
 You won't find a smaller bundle anywhere else!
 (unless you do, in which case, damnnnnnn.)
 
 Implemented with SWC in Rust (:rocket::rocket::rocket:),
-to stop it from being *too* horridly inefficent.
+to stop it from being *too* horridly inefficient.
 
 > **Warning** |
 > *On the open-sourcedness of ParaMin 2023-02-12*
@@ -33,13 +33,10 @@ ParaMin works best when fed an unminified bundle, so if your build tool has that
 
 If it doesn't, post-process an unminified build :)
 
-Only ES Modules are supported *as of now*, otherwise ParaMin cannot understand which things must have the same external behaviour.
-CommonJS etc. *may work*, as `module.exports` would be considered a global and not broken, but none of this is guaranteed.
+Only ES Modules are officially 100% will-not-break-ever supported *as of now*.
 
-The following optional settings may be useful:
- - `unsafeglobals`: will happily break external code that may depend on globals created in your code.
- - `noshake`: prevents ParaMin from tree shaking your code. Useful for debug purposes as it prevents pure code from compiling down to an empty file.
- - `dev`: disables many minifications to build way faster, so that it can be used in dev environments eg Vite without being a performance issue.
+CommonJS and IIFEs should work fine given defaults but no guarantees, especially
+if you are using options such as `notopiife` and `unsafeglobals`.
 
 ## Why?
 
@@ -53,10 +50,10 @@ I can't hope to beat hand-optimised output, but I hope to get close!
 Based on a few main concepts:
  - Confident minifications
    * Always applied, relatively fast to apply
-   * Mangling (foo -> e)
-   * Compressing (`function (x, y) {  }` -> `function(x,y){}`)
+   * Mangling (foo → e)
+   * Compressing (`function (x, y) {  }` → `function(x,y){}`)
    * Heuristic minifications (all the neat stuff minifiers do already)
-   
+
  - Tentative minifications
    * Test all the things!
    * Throw possible minifications at the wall and see what does or doesn't stick
@@ -82,7 +79,7 @@ I have built many a transform in it, and am mostly comfortable with its JS API
 Secondly, performance. Now I'm not going all rust on you here, no honestly,
 Babel is not fast. It is very slow.
 
-I have had to use both Babel and SWC together in a web ui before.
+I have had to use both Babel and SWC together in a web UI before.
 SWC could run on every keystroke easily even with WASM fees to pay.
 Babel could *not*, and had the benefit of no interop and a JIT.
 
@@ -91,7 +88,7 @@ reasonable performance in Babel, I need stringification to be EXTREMELY fast.
 
 ## but uh closure compiler
 
-Yeah so apparently closure compiler's advanced mode is kinda like this.
+Yeah, so closure compiler's advanced mode is kinda like this.
 
 Neat. Hopefully mine can beat it >:)
 
