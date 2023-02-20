@@ -1,11 +1,36 @@
 mod mangle;
-mod hoist_vars;
-pub use mangle::transformer as transform_mangle;
-pub use hoist_vars::transformer as transform_hoist_vars;
-use swc_core::ecma::ast::Program;
+use mangle::transformer as transform_mangle;
 
-// runs all confident transforms in optimal order
-pub fn transform_all_confident(p: &mut Program) {
-	transform_hoist_vars(p);
+use swc_core::{
+	common::{sync::Lrc, Mark, SourceMap},
+	ecma::{
+		ast::Program,
+		minifier::{
+			optimize,
+			option::{ExtraOptions, MinifyOptions},
+		},
+	},
+};
+
+pub fn transform_confident(p: &mut Program) {
 	transform_mangle(p);
+	transform_swc(p);
+}
+
+fn transform_swc(program: &mut Program) {
+	*program = optimize(
+		program.clone(),
+		Lrc::new(SourceMap::default()),
+		None,
+		None,
+		&MinifyOptions {
+			// disable mangler as we will use our own
+			mangle: None,
+			..Default::default()
+		},
+		&ExtraOptions {
+			unresolved_mark: Mark::new(),
+			top_level_mark: Mark::new(),
+		},
+	);
 }
