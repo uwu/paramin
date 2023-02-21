@@ -50,7 +50,6 @@ Based on a few main concepts:
  - Confident minifications
    * Existing, fast minifications that minifiers do
    * ParaMin delegates this to `swc_ecma_minify`, as it already [performs very well](https://github.com/privatenumber/minification-benchmarks).
-   * With exceptions, however (our mangler is situationally better for example)
 
  - Tentative minifications
    * Test all the things!
