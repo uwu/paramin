@@ -3,7 +3,6 @@ use std::collections::HashMap;
 use swc_core::ecma::{
 	ast,
 	atoms::JsWord,
-	transforms::testing::test,
 	visit::{VisitMut, VisitMutWith},
 };
 
@@ -12,7 +11,7 @@ use crate::{
 		arrow_to_function, extract_fn_shadows, extract_pat_idents, function_to_arrow,
 		get_ast_idents,
 	},
-	export_transformer,
+	export_transformer, test,
 };
 
 const ALPHABET: &[u8] = b"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ$_";
@@ -140,22 +139,14 @@ impl VisitMut for MangleVisitor {
 export_transformer!(MangleVisitor::default());
 
 test!(
-	Default::default(),
-	|_| {
-		use swc_core::ecma::visit::as_folder;
-		as_folder(MangleVisitor::default())
-	},
+	MangleVisitor,
 	mangle_test,
 	r#"let foo, bar = 5; console.log(foo ?? bar + 7)"#,
 	r#"let a, b = 5; console.log(a ?? b + 7)"#
 );
 
 test!(
-	Default::default(),
-	|_| {
-		use swc_core::ecma::visit::as_folder;
-		as_folder(MangleVisitor::default())
-	},
+	MangleVisitor,
 	mangle_awareness_test,
 	r#"let b,c,a, d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,$,_;
 
