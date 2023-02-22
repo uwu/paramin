@@ -1,0 +1,13 @@
+[package]
+name = "paramin_benchmarking"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+paramin = { version = "0.1.0", path = "../paramin" }
+reqwest = "0.11.14"
+swc_core = { version = "0.59.*", features = ["ecma_parser"] }
+# we dont really need tokio full but i cba to figure out what we *do* need
+tokio = {version = "1.25.0", features = ["full"]}

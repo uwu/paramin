@@ -1,5 +1,8 @@
 [workspace]
-members = ["crates/paramin"]
+members = [
+	"crates/paramin",
+	"crates/paramin_benchmarking"
+]
 
 [profile.release]
 lto = true
