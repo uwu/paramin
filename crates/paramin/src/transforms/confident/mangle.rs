@@ -7,7 +7,13 @@ use swc_core::ecma::{
 	visit::{VisitMut, VisitMutWith},
 };
 
-use crate::{export_transformer, ast_utils::{extract_fn_shadows, function_to_arrow, arrow_to_function, get_ast_idents}};
+use crate::{
+	ast_utils::{
+		arrow_to_function, extract_fn_shadows, extract_pat_idents, function_to_arrow,
+		get_ast_idents,
+	},
+	export_transformer,
+};
 
 const ALPHABET: &[u8] = b"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ$_";
 const ALPHABET_LENGTH: usize = ALPHABET.len();
@@ -83,15 +89,7 @@ impl MangleVisitor {
 impl VisitMut for MangleVisitor {
 	fn visit_mut_var_decl(&mut self, n: &mut ast::VarDecl) {
 		for decl in n.decls.clone() {
-			match decl.name {
-				ast::Pat::Ident(id) => self.source_names.push(id.id.sym),
-				ast::Pat::Array(_) => todo!(),
-				ast::Pat::Object(_) => todo!(),
-				ast::Pat::Rest(_) => panic!("Rest is not valid in a variable decl"),
-				ast::Pat::Assign(_) => panic!("Assign is not valid in a variable decl"),
-				ast::Pat::Invalid(_) => panic!("Invalid is not valid in a variable decl"),
-				ast::Pat::Expr(_) => panic!("Expr is not valid in a variable decl"),
-			}
+			extract_pat_idents(&decl.name, &mut self.source_names);
 		}
 
 		n.visit_mut_children_with(self);

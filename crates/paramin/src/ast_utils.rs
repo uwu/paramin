@@ -62,18 +62,21 @@ pub fn get_ast_idents(
 	visitor.found
 }
 
-// TODO: extract_pat_idents
-pub fn extract_fn_shadows(function: &ast::Function, target: &mut Vec<JsWord>) {
-	for p in function.params.clone() {
-		match p.pat {
+pub fn extract_pat_idents(p: &ast::Pat, target: &mut Vec<JsWord>) {
+	match p {
 			ast::Pat::Ident(id) => target.push(id.sym.clone()),
-			ast::Pat::Array(_) => todo!(),
-			ast::Pat::Object(_) => todo!(),
-			ast::Pat::Assign(_) => todo!(),
-			ast::Pat::Rest(_) => todo!(),
-			ast::Pat::Invalid(_) => panic!("function params should not contain Invalid"),
-			ast::Pat::Expr(_) => panic!("function params should not contain Expr"),
+			ast::Pat::Expr(expr) => target.extend(get_ast_idents(expr)),
+			ast::Pat::Array(arr) => target.extend(get_ast_idents(arr)),
+			ast::Pat::Object(obj) => target.extend(get_ast_idents(obj)),
+			ast::Pat::Assign(ass) => target.extend(get_ast_idents(ass)),
+			ast::Pat::Rest(rest) => target.extend(get_ast_idents(rest)),
+			ast::Pat::Invalid(_) => panic!("patterns should not contain Invalid, is your code valid?"),
 		}
+}
+
+pub fn extract_fn_shadows(function: &ast::Function, target: &mut Vec<JsWord>) {
+	for p in &function.params {
+		extract_pat_idents(&p.pat, target);
 	}
 }
 

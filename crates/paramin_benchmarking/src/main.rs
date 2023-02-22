@@ -1,10 +1,10 @@
 use std::time::{Duration, Instant};
 
-const TEST_FILES: [&'static str; 4] = [
+const TEST_FILES: [&'static str; 5] = [
 	"jquery",
 	"lodash",
 	"moment",
-	//"three",
+	"three",
 	"typescript",
 ];
 
