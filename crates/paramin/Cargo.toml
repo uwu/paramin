@@ -1,0 +1,15 @@
+[package]
+name = "paramin"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+serde = "1"
+swc_core = { version = "0.59.*", features = ["ecma_plugin_transform", "ecma_codegen", "ecma_minifier"] }
+
+# .cargo/config defines few alias to build plugin.
+# cargo build-wasi generates wasm-wasi32 binary
+# cargo build-wasm32 generates wasm32-unknown-unknown binary.
