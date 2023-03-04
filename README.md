@@ -11,19 +11,13 @@ to stop it from being *too* horridly inefficient.
 > **Warning** |
 > *On the open-sourcedness of ParaMin 2023-02-12*
 >
-> This repository was open sourced very early on because of a request by a friend of mine
-> to read the source code for the mangler.
->
-> However, almost instantly this proved true to EXACTLY why I keep my
-> WIP projects closed-source: *"benchmark for size where"*.
->
-> No, its not ready, don't expect it to work.
+> This software was open-sourced very early on. It is not ready for production use.
 >
 > If you're here to keep an eye on this until its ready *that's awesome*,
 > and I'm super glad you're interested in my work,
 > but if you are about to come and ask me for size or runtime speed
 > metrics of any kind, or for how to use this currently, please don't.
-> **There are no metrics, and you cannot currently use this in your pipeline.**
+> **You cannot currently use this in your pipeline.**
 >
 > Thanks, Yellowsink.
 
@@ -35,8 +29,7 @@ If it doesn't, post-process an unminified build :)
 
 Only ES Modules are officially 100% will-not-break-ever supported *as of now*.
 
-CommonJS and IIFEs should work fine given defaults but no guarantees, especially
-if you are using options such as `notopiife` and `unsafeglobals`.
+CommonJS and IIFEs should work fine given defaults but no guarantees.
 
 ## Why?
 
