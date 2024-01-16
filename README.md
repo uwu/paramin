@@ -1,3 +1,9 @@
+! this project never got enough development
+i consider it canceled and unlikely to see the light of day
+\- sink 2024-01-16
+
+
+
 # ParaMin
 
 The absolutely insane JS minifier.
